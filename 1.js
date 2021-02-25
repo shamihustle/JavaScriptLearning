@@ -160,7 +160,7 @@ function getHTMLTableFrom2DArray(cells2D, tbody)
     return tbody;
 }
 
-// Объединение столбцов с одинаковым значением
+// Объединение строк с одинаковым значением
 function SummerizeTable(table) {
     $(table).each(function() 
     {
@@ -194,6 +194,7 @@ function SummerizeTable(table) {
     });
 }
 
+// Объединение стобцов с одинаковым значением
 function combineCol(secondTable) 
 {
     for(let i = 1; i < secondTable.rows.length; i++)

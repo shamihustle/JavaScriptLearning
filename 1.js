@@ -15,14 +15,15 @@ function divide_table(inputValueDiv)
             return 0;
         }
     }
-        
 
     var firstTablePlace = document.getElementById("div1");
     var secondTablePlace = document.getElementById("div2");
     var thirdTablePlace = document.getElementById("div3");
+    var fourthTablePlace = document.getElementById("div4");
     clearTablePlace(firstTablePlace);
     clearTablePlace(secondTablePlace);
     clearTablePlace(thirdTablePlace);
+    clearTablePlace(fourthTablePlace);
 
     var followingTables = getNoFirstTable(originalTable, rowNumber);
 
@@ -30,6 +31,11 @@ function divide_table(inputValueDiv)
     if(followingTables.length == 2)
     {
         thirdTablePlace.appendChild(followingTables[1]);
+    }
+    if(followingTables.length == 3)
+    {
+        thirdTablePlace.appendChild(followingTables[1]);
+        fourthTablePlace.appendChild(followingTables[2]);
     }
     firstTablePlace.appendChild(getFirstTable(originalTable, rowNumber[0]));
 
@@ -52,84 +58,50 @@ function getFirstTable(table, rowNumber)
 
 function getNoFirstTable(table, rowNumber)
 {
-    var arrTable = [];
+    var arrTables = [];
     for(let k = 0; k < rowNumber.length; k++)
     {
         var rows = table.getElementsByTagName("tr");
         var tbody = document.createElement("tbody");
-        var secondTable = table.cloneNode(false);
+        var currentTable = table.cloneNode(false);
         tbody.appendChild(rows[0].cloneNode(true));
     
         // Создание двухмерного массива из таблицы 
         var cells2D = get2DArrayFromHTMLTable(rows);
-    
+   
         // Создание HTML таблицы из двухмерного массива
-        for (var i = 0; i < cells2D.length; i++) 
-        {
-            var tr = document.createElement('tr');
-            for (var j = 0; j < cells2D[i].length; j++) 
-            {
-                console.log(cells2D[i][j].innerHTML);
-                cells2D[i][j].innerHTML = cells2D[i][j].innerHTML.replace("<td>");
-                cells2D[i][j].innerHTML = cells2D[i][j].innerHTML.replace("</td>");
-                console.log(cells2D[i][j].innerHTML);
-    
-                var td = document.createElement('td');
-                td.innerHTML = cells2D[i][j].innerHTML;
-                // td.appendChild(cells2D[i][j]);
-                tr.appendChild(td);
-            }
-            tbody.appendChild(tr);
-            
-        }
-        secondTable.appendChild(tbody);
-    
-        // secondTable.appendChild(getHTMLTableFrom2DArray(cells2D));
-    
+        getHTMLTableFrom2DArray(cells2D, tbody);
+        currentTable.appendChild(tbody);
+
+        // Удаление линих строк из новой HTML таблицы
         if(k == (rowNumber.length - 1))
         {
             for (let i = rowNumber[k]; i > 0; i--) 
             {
-                secondTable.deleteRow(i);
+                currentTable.deleteRow(i);
             }
         }
         else
         {
-            for (let i = secondTable.rows.length - 1; i > 0; i--) 
+            for (let i = currentTable.rows.length - 1; i > 0; i--) 
             {
-                if(i > rowNumber[k] && i <= rowNumber[k + 1])
+                if(!(i > rowNumber[k] && i <= rowNumber[k + 1]))
                 {
-                }
-                else
-                {
-                    secondTable.deleteRow(i);
+                    currentTable.deleteRow(i);
                 }
             }
         }
-        
-        for(let i = 1; i < secondTable.rows.length; i++)
-        {
-            for(let j = 1; j < secondTable.rows[i].cells.length; j++)
-            {
-                console.log(secondTable.rows[i].cells[j].innerHTML);
-                console.log(secondTable.rows[i].cells[j - 1].innerHTML);
-    
-                if(secondTable.rows[i].cells[j].innerHTML == secondTable.rows[i].cells[j - 1].innerHTML)
-                {
-                    console.log("Equal : ");
-                    console.log(secondTable.rows[i].cells[j].innerHTML);
-                    console.log(secondTable.rows[i].cells[j - 1].innerHTML);
-                    secondTable.rows[i].cells[j].remove();
-                    secondTable.rows[i].cells[j - 1].colSpan++;
-                    j--;
-                }
-            }
-        }
-        SummerizeTable(secondTable);
-        arrTable.push(secondTable);
+
+        // Объединение столбцов таблицы 
+        combineCol(currentTable);
+
+        // Объединение строк таблицы 
+        SummerizeTable(currentTable);
+
+        arrTables.push(currentTable);
     }
 
-    return arrTable;
+    return arrTables;
 }
 
 function get2DArrayFromHTMLTable(rows)
@@ -166,10 +138,8 @@ function get2DArrayFromHTMLTable(rows)
     return cells2D;
 }
 
-function getHTMLTableFrom2DArray(cells2D)
+function getHTMLTableFrom2DArray(cells2D, tbody)
 {
-    var tbody = document.createElement("tbody");
-
     for (var i = 0; i < cells2D.length; i++) 
     {
         var tr = document.createElement('tr');
@@ -224,7 +194,7 @@ function SummerizeTable(table) {
     });
 }
 
-function combineRows(secondTable) 
+function combineCol(secondTable) 
 {
     for(let i = 1; i < secondTable.rows.length; i++)
     {

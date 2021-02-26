@@ -6,25 +6,17 @@
         var height = 500; 
         var width = 500;
         var margin = 30;
-        /*
-        var rawData = [
-            {x: 10, y: Math.sin(x)}, {x: 20, y: Math.sin(x)}, {x: 30, y: Math.sin(x)},
-            {x: 40, y: Math.sin(x)}, {x: 50, y: Math.sin(x)}, {x: 60, y: Math.sin(x)},
-            {x: 70, y: Math.sin(x)}, {x: 80, y: Math.sin(x)}, {x: 90, y: Math.sin(x)}
-        ];
-        */
-        var rawData = [];
-        var data = [];
-        var xRaw = 0;
+        var rawDataSinChart = [];
+        var dataSinChart = [];
+
+        var rawDataCosChart = [];
+        var dataCosChart = [];
+
         var amplitudeSin = 60;
-        var rangeSin = 1000;
         var freqSin = 0.5;
-        for(let i = 0; i < rangeSin; i++)
-        {
-            var yRaw = amplitudeSin * Math.sin(freqSin * xRaw);
-            xRaw += 0.1;
-            rawData.push({x: xRaw, y: yRaw});
-        }
+
+        getSinChartData(rawDataSinChart, 0, 100, freqSin, 20, 1000);
+        getCosChartData(rawDataCosChart, 0, 100, freqSin, amplitudeSin, 1000);
 
 
         var svg = d3.select(chartPlace).append("svg")
@@ -49,9 +41,10 @@
             .range([0, yAxisLength]);
 
         // масштабирование реальных данных в данные для нашей координатной системы
-        for(i = 0; i < rawData.length; i++)
+        for(i = 0; i < rawDataSinChart.length; i++)
         {
-            data.push({x: scaleX(rawData[i].x) + margin, y: scaleY(rawData[i].y) + margin});
+            dataSinChart.push({x: scaleX(rawDataSinChart[i].x) + margin, y: scaleY(rawDataSinChart[i].y) + margin});
+            dataCosChart.push({x: scaleX(rawDataCosChart[i].x) + margin, y: scaleY(rawDataCosChart[i].y) + margin});
         }
         var xAxis = d3.axisBottom(scaleX);
         var yAxis = d3.axisLeft(scaleY);
@@ -94,26 +87,88 @@
             .style("stroke-width", 1)
             .style("stroke-dasharray", ("3, 3"));
 
-        
-
-        var circles = d3.selectAll('.line-group').selectAll('circle');  
-        var circleCoords = [];
-        // функция, создающая по массиву точек линии
-        var line = d3.line()
-                .x(function(d){return d.x;})
-                .y(function(d){return d.y;});
 
         
-        // добавляем путь
-        svg.append("path")
-            .attr("d", line(data))
-            .style("fill", "none")
-            .style("stroke", "black");
+        printLine(dataSinChart, svg, "black");
+        printLine(dataCosChart, svg, "red");
+        
+        var color = d3.scaleOrdinal(d3.schemeCategory10);
 
+        printCirlces(dataSinChart, svg, "black");
+        printCirlces(dataCosChart, svg, "red");
     }
     
     window.onload = init;
     
+    function getSinChartData(data, startX, stopX, freq, amplitude, pointCount)
+    {
+        var step = (stopX - startX) / pointCount;
+        var lastPoint = (stopX - startX) / step;
+        for(let i = 0; i < lastPoint; i++)
+        {
+            var ySin = amplitude * Math.sin(freq * startX);
+            data.push({x: startX, y: ySin});
+            startX += step;
+        }
+
+        var ySinLatPoint = amplitude * Math.sin(freq * stopX);
+        data.push({x: stopX, y: ySinLatPoint});
+
+        return data;
+    } 
+    
+    
+    function printCirlces(data, svg, color)
+    {
+        var dataCircles = [];
+        for(let i = 0; i < data.length; i+=4)
+        {  
+            dataCircles.push(data[i]);
+        }
+
+        svg.selectAll(".dot")
+            .data(dataCircles)
+            .enter().append("circle")
+            .attr('cx', function(d) { return d.x; })
+            .attr('cy', function(d) { return d.y; })
+            .attr('r', 2)  
+            .attr('fill', 'none')
+            .style("stroke", color);
+
+        // return dataCircles;
+    }
+
+    function printLine(data, svg, color)
+    {
+                // функция, создающая по массиву точек линии
+        var line = d3.line()
+            .x(function(d){return d.x;})
+            .y(function(d){return d.y;});
+            
+        svg.append("path")
+            .attr("d", line(data))
+            .style("fill", "none")
+            .style("stroke", color);
+    }
+    
+    function getCosChartData(data, startX, stopX, freq, amplitude, pointCount)
+    {
+        var step = (stopX - startX) / pointCount;
+        var lastPoint = (stopX - startX) / step;
+        for(let i = 0; i < lastPoint; i++)
+        {
+            var ySin = amplitude * Math.cos(freq * startX);
+            data.push({x: startX, y: ySin});
+            startX += step;
+        }
+
+        var ySinLatPoint = amplitude * Math.sin(freq * stopX);
+        data.push({x: stopX, y: ySinLatPoint});
+
+        return data;
+    }
+
+
 
     // Функция генерации случайного целого числа в диапазоне [lo..up]
     function irand(lo, up) 
